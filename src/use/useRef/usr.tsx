@@ -1,99 +1,67 @@
-import { useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 
-interface User {
-  firstName: string;
-  lastName: string;
-}
+// export default function USR() {
+//   const [count, setCount] = useState(0);
+//   const countRef = useRef(0);
 
-export default function UST() {
-  const [name, setName] = useState<User>({
-    firstName: "",
-    lastName: "",
-  });
-  const [users, setUsers] = useState<User[]>([]);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editIndex, setEditIndex] = useState<number | null>(null);
+//   const handleIncrement = () => {
+//     setCount(count + 1);
+//     countRef.current++;
+
+//     console.log("State:", count);
+//     console.log("Ref:", countRef.current);
+//   };
+
+//   return (
+//     <div className="tutorial">
+//       Count: {count}
+//       <button onClick={handleIncrement}>Increment</button>
+//     </div>
+//   );
+// }
+
+export default function USR() {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const refCount = useRef(0);
+
+  const [input, setInput] = useState("");
+  const [stateCount, setStateCount] = useState(0);
 
   useEffect(() => {
-    console.log(name);
-  }, [name]);
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (isEditing) {
-      handleUpdateUser();
-    } else {
-      handleAddUser();
-    }
-  };
-  const handleAddUser = () => {
-    if (name.firstName && name.lastName) {
-      setUsers([
-        ...users,
-        { firstName: name.firstName, lastName: name.lastName },
-      ]);
-      setName({ firstName: "", lastName: "" });
-    }
+    inputRef.current?.focus();
+  }, []);
+
+  const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
   };
 
-  const handleEdit = (index: number) => {
-    setIsEditing(true);
-    setEditIndex(index);
-    setName(users[index]);
+  const increaseRef = () => {
+    refCount.current += 1;
+    console.log("Ref count:", refCount.current);
   };
 
-  const handleDelete = (index: number) => {
-    const filtered = users.filter((_, i) => i !== index);
-    setUsers(filtered);
-  };
-
-  const handleUpdateUser = () => {
-    if (editIndex != null) {
-      if (name.firstName.trim() && name.lastName.trim()) {
-        const updatedUsers = [...users];
-        updatedUsers[editIndex] = {
-          firstName: name.firstName,
-          lastName: name.lastName,
-        };
-        setUsers(updatedUsers);
-        setName({ firstName: "", lastName: "" });
-        setIsEditing(false);
-        setEditIndex(null);
-      } else {
-        alert("cant null");
-      }
-    }
+  const increaseState = () => {
+    setStateCount((prev) => prev + 1);
   };
 
   return (
-    <div className="App">
-      <form onSubmit={handleSubmit}>
-        <div>
-          <input
-            type="text"
-            value={name.firstName}
-            onChange={(e) => setName({ ...name, firstName: e.target.value })}
-          />
-        </div>
-        <div>
-          <input
-            type="text"
-            value={name.lastName}
-            onChange={(e) => setName({ ...name, lastName: e.target.value })}
-          />
-        </div>
+    <div className="tutorial">
+      <input
+        ref={inputRef}
+        type="text"
+        value={input}
+        onChange={handleTyping}
+        placeholder="Type something..."
+      />
+      <p>State input: {input}</p>
 
-        <button type="submit">{isEditing ? "Update" : "Submit"}</button>
-      </form>
+      <div className="flex gap-4 mt-4">
+        <button onClick={increaseRef}>Increment useRef</button>
+        <button onClick={increaseState}>Increment useState</button>
+      </div>
 
-      <ul>
-        {users.map((user, index) => (
-          <li key={index}>
-            {user.firstName} {user.lastName}{" "}
-            <button onClick={() => handleEdit(index)}>Edit</button>{" "}
-            <button onClick={() => handleDelete(index)}>delete</button>
-          </li>
-        ))}
-      </ul>
+      <p>useRef count (no re-render): {refCount.current}</p>
+      <p>useState count (with re-render): {stateCount}</p>
     </div>
   );
 }

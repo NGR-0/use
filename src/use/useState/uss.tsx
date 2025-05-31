@@ -5,7 +5,7 @@ interface User {
   lastName: string;
 }
 
-export default function UST() {
+export default function USS() {
   const [name, setName] = useState<User>({
     firstName: "",
     lastName: "",
