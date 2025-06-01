@@ -10,20 +10,50 @@ type Action =
   | { type: "REMOVE_ITEM"; payload: number } // product id
   | { type: "CLEAR_CART" };
 
-function cartReducer(state: Product[], action: Action): Product[] {
+type CartItem = {
+  product: Product;
+  quantity: number;
+};
+
+function cartReducer(state: CartItem[], action: Action): CartItem[] {
   switch (action.type) {
-    case "ADD_ITEM":
-      return [...state, action.payload];
-    case "REMOVE_ITEM":
-      return state.filter((item) => item.id !== action.payload);
+    case "ADD_ITEM": {
+      const existing = state.find(
+        (item) => item.product.id === action.payload.id,
+      );
+      if (existing) {
+        return state.map((item) =>
+          item.product.id === action.payload.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item,
+        );
+      } else {
+        return [...state, { product: action.payload, quantity: 1 }];
+      }
+    }
+
+    case "REMOVE_ITEM": {
+      return state.flatMap((item) => {
+        if (item.product.id === action.payload) {
+          if (item.quantity > 1) {
+            return [{ ...item, quantity: item.quantity - 1 }];
+          } else {
+            return []; // hapus item kalau quantity tinggal 1
+          }
+        }
+        return [item];
+      });
+    }
+
     case "CLEAR_CART":
       return [];
+
     default:
       return state;
   }
 }
 
-const initialCart: Product[] = [];
+const initialCart: CartItem[] = [];
 
 export default function USR() {
   const [cart, dispatch] = useReducer(cartReducer, initialCart);
@@ -34,13 +64,15 @@ export default function USR() {
     <div>
       <h2>Keranjang</h2>
       <ul>
-        {cart.map((p) => (
-          <li key={p.id}>
-            {p.name} - ${p.price}
+        {cart.map(({ product, quantity }) => (
+          <li key={product.id}>
+            {product.name} - {quantity}x - ${product.price * quantity}
             <button
-              onClick={() => dispatch({ type: "REMOVE_ITEM", payload: p.id })}
+              onClick={() =>
+                dispatch({ type: "REMOVE_ITEM", payload: product.id })
+              }
             >
-              Hapus
+              Hapus Satu
             </button>
           </li>
         ))}
